@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "macros.html" import avatar, video_card, short_card %}
+{% from "icons.html" import icon %}
+
+{% block title %}{{ channel.display_name }} — InderTube{% endblock %}
+{% block description %}{{ channel.bio or channel.display_name }} — канал на InderTube.{% endblock %}
+
+{% block content %}
+<div class="channel-page">
+  <div class="channel-banner" style="--banner: {{ channel.banner_color }}"></div>
+
+  <div class="channel-header">
+    {{ avatar(channel, 128, 'channel-avatar') }}
+    <div class="channel-info">
+      <h1 class="channel-name">{{ channel.display_name }}</h1>
+      <div class="channel-meta">
+        <span>@{{ channel.username }}</span>
+        <span class="dot">·</span>
+        <span id="channelSubs">{{ subs|subs_text }}</span>
+        <span class="dot">·</span>
+        <span>{{ stats.videos }} видео</span>
+      </div>
+      <p class="channel-bio">{{ channel.bio or 'Описание канала пока не заполнено.' }}</p>
+      <div class="channel-actions">
+        {% if is_owner %}
+          <a class="btn btn-secondary" href="{{ url_for('auth.settings') }}">{{ icon('settings', 18) }} Настроить канал</a>
+          <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">{{ icon('upload', 18) }} Загрузить видео</a>
+        {% else %}
+          <button class="btn btn-subscribe {{ 'is-subscribed' if subscribed }}" type="button"
+                  data-subscribe="{{ channel.id }}">
+            <span class="subscribe-label">{{ 'Вы подписаны' if subscribed else 'Подписаться' }}</span>
+          </button>
+          {% if current_user %}
+            <button class="btn btn-secondary" type="button" id="shareBtn"
+                    data-url="{{ url_for('main.channel', username=channel.username, _external=True) }}">
+              {{ icon('share', 18) }} Поделиться
+            </button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="channel-tabs">
+    <a class="channel-tab {{ 'is-active' if tab == 'videos' }}" href="{{ url_for('main.channel', username=channel.username, tab='videos') }}">Видео</a>
+    <a class="channel-tab {{ 'is-active' if tab == 'shorts' }}" href="{{ url_for('main.channel', username=channel.username, tab='shorts') }}">Shorts{% if shorts %} <span class="tab-count">{{ shorts|length }}</span>{% endif %}</a>
+    <a class="channel-tab {{ 'is-active' if tab == 'about' }}" href="{{ url_for('main.channel', username=channel.username, tab='about') }}">О канале</a>
+  </div>
+
+  {% if tab == 'videos' %}
+    {% if videos %}
+      <div class="video-grid channel-grid">
+        {% for v in videos %}
+          {{ video_card(v) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>Пока нет видео</h2>
+        <p>{{ 'Загрузите первое видео, чтобы начать.' if is_owner else 'Автор ещё не опубликовал ни одного видео.' }}</p>
+        {% if is_owner %}
+          <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">Загрузить видео</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% elif tab == 'shorts' %}
+    {% if shorts %}
+      <div class="shorts-grid">
+        {% for s in shorts %}{{ short_card(s) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>Пока нет Shorts</h2>
+        <p>{{ 'Загрузите вертикальное видео до 60 секунд.' if is_owner else 'Автор ещё не публиковал Shorts.' }}</p>
+        {% if is_owner %}
+          <a class="btn btn-primary" href="{{ url_for('studio.upload', format='short') }}">Загрузить Shorts</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="about-grid">
+      <div class="about-card">
+        <h2>Описание</h2>
+        <p class="about-bio">{{ channel.bio or 'Автор пока ничего о себе не рассказал.' }}</p>
+        <h2>Статистика</h2>
+        <div class="about-stats">
+          <div><strong>{{ stats.videos }}</strong><span>видео</span></div>
+          <div><strong>{{ stats.views|human_num }}</strong><span>{{ stats.views|plural('просмотр', 'просмотра', 'просмотров') }}</span></div>
+          <div><strong>{{ subs|human_num }}</strong><span>{{ subs|plural('подписчик', 'подписчика', 'подписчиков') }}</span></div>
+        </div>
+      </div>
+      <div class="about-card">
+        <h2>Подробности</h2>
+        <dl class="about-details">
+          <dt>Ссылка</dt><dd>@{{ channel.username }}</dd>
+          <dt>На InderTube с</dt><dd>{{ channel.created_at|ru_date }}</dd>
+          <dt>Страна</dt><dd>Россия</dd>
+        </dl>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

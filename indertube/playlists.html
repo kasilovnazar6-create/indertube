@@ -1,0 +1,49 @@
+﻿{% extends "base.html" %}
+{% from "icons.html" import icon %}
+
+{% block title %}Плейлисты — InderTube{% endblock %}
+
+{% block content %}
+<div class="feed-page">
+  <div class="feed-header feed-header-row">
+    <div class="feed-title">
+      <span class="feed-icon">{{ icon('playlist', 30) }}</span>
+      <div>
+        <h1>Плейлисты</h1>
+        <p class="feed-sub">Собственные подборки и сохранённые видео</p>
+      </div>
+    </div>
+  </div>
+
+  <form class="create-playlist-form" id="createPlaylistForm">
+    <input type="text" name="title" maxlength="80" placeholder="Название нового плейлиста" required>
+    <button class="btn btn-primary" type="submit">{{ icon('plus', 18) }} Создать</button>
+  </form>
+
+  {% if playlists %}
+    <div class="playlist-grid">
+      {% for p in playlists %}
+        <a class="playlist-card" href="{{ url_for('main.playlist', playlist_id=p.id) }}">
+          <div class="playlist-cover">
+            {% if p.cover %}
+              <img src="{{ url_for('media.thumb', filename=p.cover) }}" alt="{{ p.title }}" loading="lazy">
+            {% else %}
+              <span class="playlist-cover-empty">{{ icon('playlist', 36) }}</span>
+            {% endif %}
+            <span class="playlist-count">{{ p.item_count }} видео</span>
+          </div>
+          <div class="playlist-card-info">
+            <h3>{{ p.title }}</h3>
+            <span>{{ 'Приватный плейлист' if p.kind == 'watch_later' else 'Плейлист' }} &middot; {{ p.item_count }} видео</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Плейлистов пока нет</h2>
+      <p>Создайте подборку или сохраните видео кнопкой «Сохранить».</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

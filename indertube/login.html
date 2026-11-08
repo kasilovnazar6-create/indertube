@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+
+{% block title %}Вход — InderTube{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg viewBox="0 0 30 21" width="46" height="32" aria-hidden="true">
+        <rect width="30" height="21" rx="5.5" fill="#ff0033"/>
+        <path d="M12 6.1v8.8L20.4 10.5z" fill="#fff"/>
+      </svg>
+      <span>InderTube</span>
+    </div>
+    <h1>Вход в аккаунт</h1>
+    <p class="auth-sub">Смотрите видео, ставьте лайки и публикуйте своё</p>
+
+    <form method="post" action="{{ url_for('auth.login', next=next_url) if next_url else url_for('auth.login') }}" class="auth-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="next" value="{{ next_url }}">
+
+      <div class="field">
+        <label for="identifier">E-mail или имя канала</label>
+        <input type="text" id="identifier" name="identifier" required autofocus
+               autocomplete="username" value="{{ form.identifier }}" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password"
+               placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">Войти</button>
+    </form>
+
+    <div class="auth-links">
+      Нет аккаунта? <a href="{{ url_for('auth.register') }}">Создать канал</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

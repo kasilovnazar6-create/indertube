@@ -1,0 +1,18 @@
+﻿{% extends "base.html" %}
+{% from "icons.html" import icon %}
+
+{% block title %}{{ code }} — InderTube{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="error-card">
+    <span class="error-code">{{ code }}</span>
+    <h1>{{ message }}</h1>
+    <p>Возможно, страница была удалена или вы перешли по неверной ссылке.</p>
+    <div class="error-actions">
+      <a class="btn btn-primary" href="{{ url_for('main.index') }}">На главную</a>
+      <a class="btn btn-secondary" href="{{ url_for('main.trending') }}">Смотреть тренды</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

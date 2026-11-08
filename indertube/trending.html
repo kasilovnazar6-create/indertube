@@ -1,0 +1,35 @@
+﻿{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "macros.html" import avatar %}
+
+{% block title %}В тренде — InderTube{% endblock %}
+
+{% block content %}
+<div class="feed-page">
+  <div class="feed-header">
+    <span class="feed-icon">{{ icon('fire', 30) }}</span>
+    <div>
+      <h1>В тренде</h1>
+      <p class="feed-sub">Самое популярное на InderTube прямо сейчас</p>
+    </div>
+  </div>
+
+  <div class="trending-list">
+    {% for v in videos %}
+      <article class="trending-item">
+        <span class="trending-rank">{{ loop.index }}</span>
+        <a class="trending-thumb" href="{{ url_for('main.watch', video_id=v.id) }}">
+          <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+          <span class="duration-badge">{{ v.duration|duration }}</span>
+        </a>
+        <div class="trending-info">
+          <a class="trending-title" href="{{ url_for('main.watch', video_id=v.id) }}">{{ v.title }}</a>
+          <a class="trending-channel" href="{{ url_for('main.channel', username=v.username) }}">{{ avatar(v, 24) }} {{ v.display_name }}</a>
+          <div class="trending-meta">{{ v.views|views_text }} &middot; {{ v.created_at|timeago }}</div>
+          <p class="trending-desc">{{ (v.description or '')[:140] }}</p>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

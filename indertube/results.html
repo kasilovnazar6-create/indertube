@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "macros.html" import avatar %}
+{% from "icons.html" import icon %}
+
+{% block title %}{% if term %}«{{ term }}» — поиск на InderTube{% else %}Поиск — InderTube{% endif %}{% endblock %}
+
+{% block content %}
+<div class="results-page">
+  {% if term %}
+    <div class="results-head">
+      <h1>Результаты поиска: «{{ term }}»</h1>
+      <div class="results-tools">
+        <span class="results-count">{{ total|human_num }} {{ total|plural('результат', 'результата', 'результатов') }}</span>
+        <div class="chips chips-small">
+          <a class="chip {{ 'is-active' if sort == 'relevance' }}" href="{{ url_for('main.results', search_query=term) }}">По релевантности</a>
+          <a class="chip {{ 'is-active' if sort == 'date' }}" href="{{ url_for('main.results', search_query=term, sort='date') }}">Сначала новые</a>
+          <a class="chip {{ 'is-active' if sort == 'views' }}" href="{{ url_for('main.results', search_query=term, sort='views') }}">По просмотрам</a>
+        </div>
+      </div>
+    </div>
+
+    {% if videos %}
+      <div class="results-list">
+        {% for v in videos %}
+          {% set link = url_for('main.shorts', video_id=v.id) if v.is_short else url_for('main.watch', video_id=v.id) %}
+          <article class="result-item">
+            <a class="result-thumb {{ 'is-short' if v.is_short }}" href="{{ link }}" aria-label="{{ v.title }}">
+              <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+              <span class="duration-badge">{{ v.duration|duration }}</span>
+              {% if v.is_short %}<span class="short-result-badge">{{ icon('shorts', 13) }} Shorts</span>{% endif %}
+            </a>
+            <div class="result-info">
+              <a class="result-title" href="{{ link }}">{{ v.title }}</a>
+              <div class="result-meta">{{ v.views|views_text }} &middot; {{ v.created_at|timeago }}</div>
+              <a class="result-channel" href="{{ url_for('main.channel', username=v.username) }}">
+                {{ avatar(v, 24) }}<span>{{ v.display_name }}</span>
+              </a>
+              <p class="result-desc">{{ (v.description or 'Описание не добавлено.')[:180] }}{% if v.description and v.description|length > 180 %}…{% endif %}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>Ничего не найдено</h2>
+        <p>По запросу «{{ term }}» нет видео. Попробуйте сформулировать иначе.</p>
+        <a class="btn btn-secondary" href="{{ url_for('main.index') }}">На главную</a>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-emoji">{{ icon('search', 44) }}</span>
+      <h2>Что будем искать?</h2>
+      <p>Введите запрос в строку поиска сверху — найдём видео и каналы.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

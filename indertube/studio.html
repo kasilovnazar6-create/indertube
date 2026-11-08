@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "macros.html" import avatar %}
+
+{% block title %}Творческая студия — InderTube{% endblock %}
+
+{% block content %}
+<div class="studio-page">
+  <div class="studio-header">
+    <div>
+      <h1>Творческая студия</h1>
+      <p class="feed-sub">Управляйте своими видео и следите за статистикой канала</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">{{ icon('upload', 18) }} Загрузить видео</a>
+  </div>
+
+  <div class="stat-cards">
+    <div class="stat-card">
+      <span class="stat-label">Публикации</span>
+      <strong>{{ totals.videos }}</strong>
+      <span class="stat-hint">на канале</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Просмотры</span>
+      <strong>{{ totals.views|human_num }}</strong>
+      <span class="stat-hint">всего</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Лайки</span>
+      <strong>{{ likes|human_num }}</strong>
+      <span class="stat-hint">на всех видео</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Комментарии</span>
+      <strong>{{ comments|human_num }}</strong>
+      <span class="stat-hint">от зрителей</span>
+    </div>
+  </div>
+
+  {% if videos %}
+    <div class="studio-table-wrap">
+      <table class="studio-table">
+        <thead>
+          <tr>
+            <th>Видео</th>
+            <th>Доступ</th>
+            <th>Дата</th>
+            <th class="num">Просмотры</th>
+            <th class="num">Лайки</th>
+            <th class="num">Комментарии</th>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in videos %}
+            {% set link = url_for('main.shorts', video_id=v.id) if v.is_short else url_for('main.watch', video_id=v.id) %}
+            <tr>
+              <td>
+                <div class="studio-video-cell">
+                  <a class="studio-thumb {{ 'is-short' if v.is_short }}" href="{{ link }}">
+                    <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+                    <span class="duration-badge">{{ v.duration|duration }}</span>
+                  </a>
+                  <div class="studio-video-info">
+                    <a class="studio-video-title" href="{{ link }}">{{ v.title }}</a>
+                    <span class="studio-video-sub">
+                      {% if v.is_short %}<span class="type-badge type-short">{{ icon('shorts', 12) }} Shorts</span>{% endif %}
+                      {{ v.category }} &middot; {{ v.views|views_text }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="visibility-pill visibility-{{ v.visibility }}">
+                  {{ 'Открытое' if v.visibility == 'public' else ('По ссылке' if v.visibility == 'unlisted' else 'Личное') }}
+                </span>
+              </td>
+              <td class="muted">{{ v.created_at|ru_date }}</td>
+              <td class="num">{{ v.views|human_num }}</td>
+              <td class="num">{{ v.like_count|human_num }}</td>
+              <td class="num">{{ v.comment_count|human_num }}</td>
+              <td class="actions">
+                <a class="icon-btn" href="{{ url_for('studio.edit', video_id=v.id) }}" title="Редактировать">{{ icon('edit', 18) }}</a>
+                <form method="post" action="{{ url_for('studio.delete', video_id=v.id) }}" class="inline-form"
+                      data-confirm="Удалить «{{ v.title }}»? Это действие необратимо.">
+                  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                  <button class="icon-btn danger" type="submit" title="Удалить">{{ icon('trash', 18) }}</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>На канале пока нет видео</h2>
+      <p>Загрузите первое видео — оно сразу появится на главной и в вашем канале.</p>
+      <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">Загрузить видео</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

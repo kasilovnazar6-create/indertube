@@ -1,0 +1,64 @@
+﻿{% extends "base.html" %}
+{% from "icons.html" import icon %}
+
+{% block title %}Регистрация — InderTube{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-logo">
+      <svg viewBox="0 0 30 21" width="46" height="32" aria-hidden="true">
+        <rect width="30" height="21" rx="5.5" fill="#ff0033"/>
+        <path d="M12 6.1v8.8L20.4 10.5z" fill="#fff"/>
+      </svg>
+      <span>InderTube</span>
+    </div>
+    <h1>Создайте свой канал</h1>
+    <p class="auth-sub">Бесплатно. Загружайте видео и собирайте аудиторию.</p>
+
+    <form method="post" action="{{ url_for('auth.register') }}" class="auth-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+      <div class="field-row">
+        <div class="field">
+          <label for="display_name">Название канала</label>
+          <input type="text" id="display_name" name="display_name" maxlength="60"
+                 value="{{ form.display_name }}" placeholder="Например, «Кухня Ивана»">
+        </div>
+        <div class="field">
+          <label for="username">Ссылка на канал</label>
+          <input type="text" id="username" name="username" maxlength="30" required
+                 pattern="[A-Za-z0-9_.]{3,30}" value="{{ form.username }}" placeholder="ivan.cooks">
+          <p class="field-hint">Латиница, цифры, точка, подчёркивание.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required autocomplete="email"
+               value="{{ form.email }}" placeholder="you@example.com">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="password">Пароль</label>
+          <input type="password" id="password" name="password" required minlength="8"
+                 autocomplete="new-password" placeholder="Минимум 8 символов">
+        </div>
+        <div class="field">
+          <label for="password2">Повторите пароль</label>
+          <input type="password" id="password2" name="password2" required minlength="8"
+                 autocomplete="new-password" placeholder="Ещё раз">
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">Создать канал</button>
+    </form>
+
+    <div class="auth-links">
+      Уже есть аккаунт? <a href="{{ url_for('auth.login') }}">Войти</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

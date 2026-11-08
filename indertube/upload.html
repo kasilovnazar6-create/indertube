@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "macros.html" import avatar %}
+
+{% block title %}Загрузка — InderTube{% endblock %}
+
+{% block content %}
+<div class="upload-page">
+  <div class="upload-head">
+    <h1 id="uploadHeading">{{ 'Загрузка Shorts' if current_format == 'short' else 'Загрузка видео' }}</h1>
+    <p class="feed-sub" id="uploadSub">{{ 'Вертикальный ролик до 60 секунд — покажем его в ленте Shorts' if current_format == 'short' else 'Опубликуйте ролик на своём канале — это займёт пару минут' }}</p>
+  </div>
+
+  <form class="upload-form" id="uploadForm" method="post" action="{{ url_for('studio.upload') }}"
+        enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="duration" id="durationInput" value="0">
+    <input type="hidden" name="thumb_data" id="thumbDataInput" value="">
+
+    <div class="upload-main">
+      <div class="format-switch" role="radiogroup" aria-label="Формат загрузки">
+        <label class="format-option {{ 'is-active' if current_format != 'short' }}">
+          <input type="radio" name="format" value="video" {{ 'checked' if current_format != 'short' }}>
+          <span class="format-icon">{{ icon('film', 22) }}</span>
+          <span class="format-text"><strong>Видео</strong><small>Обычный ролик 16:9</small></span>
+        </label>
+        <label class="format-option {{ 'is-active' if current_format == 'short' }}">
+          <input type="radio" name="format" value="short" {{ 'checked' if current_format == 'short' }}>
+          <span class="format-icon">{{ icon('shorts', 22) }}</span>
+          <span class="format-text"><strong>Shorts</strong><small>Вертикальное, до 60 секунд</small></span>
+        </label>
+      </div>
+
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Выбрать видеофайл">
+        <input type="file" name="video" id="videoInput"
+               accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden>
+        <div class="dropzone-empty" id="dropEmpty">
+          <span class="dropzone-icon">{{ icon('upload', 44) }}</span>
+          <h2>Перетащите видео сюда</h2>
+          <p>или нажмите, чтобы выбрать файл</p>
+          <span class="dropzone-hint" id="formatHint">MP4, WebM или MOV &middot; до 2 ГБ</span>
+        </div>
+        <div class="dropzone-preview" id="dropPreview" hidden>
+          <video id="previewVideo" controls playsinline preload="metadata"></video>
+          <div class="file-row">
+            <span class="file-name" id="fileName"></span>
+            <button class="btn btn-ghost" type="button" id="changeFile">Заменить файл</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="titleInput">Название <span class="req">*</span></label>
+        <input type="text" id="titleInput" name="title" maxlength="120" required
+               placeholder="Короткое и понятное название" value="{{ form.get('title', '') }}">
+        <div class="field-counter"><span id="titleCounter">0</span>/120</div>
+      </div>
+
+      <div class="field">
+        <label for="descInput">Описание</label>
+        <textarea id="descInput" name="description" rows="5" maxlength="5000"
+                  placeholder="Расскажите зрителям о видео">{{ form.get('description', '') }}</textarea>
+        <div class="field-counter"><span id="descCounter">0</span>/5000</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="categoryInput">Категория</label>
+          <select id="categoryInput" name="category">
+            {% for c in categories %}
+              <option value="{{ c }}" {{ 'selected' if form.get('category') == c }}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="visibilityInput">Доступ</label>
+          <select id="visibilityInput" name="visibility">
+            <option value="public" {{ 'selected' if form.get('visibility', 'public') == 'public' }}>Открытое — видно всем</option>
+            <option value="unlisted" {{ 'selected' if form.get('visibility') == 'unlisted' }}>По ссылке — только по ссылке</option>
+            <option value="private" {{ 'selected' if form.get('visibility') == 'private' }}>Личное — только вам</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Превью</label>
+        <div class="thumb-editor">
+          <div class="thumb-frame {{ 'is-vertical' if current_format == 'short' }}" id="thumbFrame">
+            <img id="thumbPreview" alt="Превью видео" hidden>
+            <div class="thumb-placeholder" id="thumbPlaceholder">
+              {{ icon('image', 32) }}
+              <span>Кадр из видео появится здесь</span>
+            </div>
+          </div>
+          <div class="thumb-controls">
+            <p id="thumbHint">Мы автоматически сделаем превью из кадра видео. Можно загрузить своё изображение 16:9.</p>
+            <label class="btn btn-secondary">
+              {{ icon('image', 18) }} Заменить превью
+              <input type="file" name="thumbnail" id="thumbInput" accept="image/jpeg,image/png,image/webp" hidden>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="upload-side">
+      <div class="upload-user">
+        {{ avatar(current_user, 44) }}
+        <div>
+          <strong>{{ current_user.display_name }}</strong>
+          <span>@{{ current_user.username }}</span>
+        </div>
+      </div>
+      <ul class="upload-tips">
+        <li>Название до 120 символов — оно влияет на выбор зрителей.</li>
+        <li>Хорошее превью повышает просмотры в разы.</li>
+        <li>Shorts — вертикальные видео до 60 секунд.</li>
+        <li>Не загружайте чужие видео без разрешения автора.</li>
+      </ul>
+      <div class="upload-submit">
+        <button class="btn btn-primary btn-block" type="submit" id="publishBtn" disabled>
+          {{ icon('upload', 18) }} <span id="publishLabel">{{ 'Опубликовать Shorts' if current_format == 'short' else 'Опубликовать' }}</span>
+        </button>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('studio.index') }}">Отмена</a>
+      </div>
+    </aside>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,29 @@
+﻿{% extends "base.html" %}
+{% from "macros.html" import video_card %}
+{% from "icons.html" import icon %}
+
+{% block title %}Понравившиеся видео — InderTube{% endblock %}
+
+{% block content %}
+<div class="feed-page">
+  <div class="feed-header">
+    <span class="feed-icon">{{ icon('like', 30) }}</span>
+    <div>
+      <h1>Понравившиеся видео</h1>
+      <p class="feed-sub">Всё, что вы лайкнули, — в одном месте</p>
+    </div>
+  </div>
+
+  {% if videos %}
+    <div class="video-grid">
+      {% for v in videos %}{{ video_card(v) }}{% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Пока пусто</h2>
+      <p>Ставьте лайки под видео — они сохранятся здесь.</p>
+      <a class="btn btn-primary" href="{{ url_for('main.index') }}">Найти видео</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+﻿{% extends "base.html" %}
+{% from "macros.html" import avatar %}
+{% from "icons.html" import icon %}
+
+{% block title %}{{ playlist.title }} — InderTube{% endblock %}
+
+{% block content %}
+<div class="playlist-page">
+  <div class="playlist-hero">
+    <div class="playlist-hero-cover">
+      {% if items %}
+        <img src="{{ url_for('media.thumb', filename=items[0].thumbnail) }}" alt="{{ playlist.title }}">
+      {% else %}
+        <span class="playlist-cover-empty">{{ icon('playlist', 44) }}</span>
+      {% endif %}
+    </div>
+    <div class="playlist-hero-info">
+      <span class="playlist-kind">{{ 'Смотреть позже' if playlist.kind == 'watch_later' else 'Плейлист' }}</span>
+      <h1>{{ playlist.title }}</h1>
+      <div class="playlist-meta">
+        <a href="{{ url_for('main.channel', username=owner.username) }}">{{ owner.display_name }}</a>
+        <span class="dot">·</span>
+        <span>{{ items|length }} видео</span>
+        {% if total_duration %}
+          <span class="dot">·</span>
+          <span>{{ total_duration|duration }}</span>
+        {% endif %}
+        <span class="dot">·</span>
+        <span>{{ 'Приватный' if playlist.visibility == 'private' else 'Публичный' }}</span>
+      </div>
+      {% if items %}
+        <div class="playlist-actions">
+          <a class="btn btn-primary" href="{{ url_for('main.watch', video_id=items[0].id) }}">
+            {{ icon('play', 18) }} Смотреть всё
+          </a>
+          {% if is_owner and playlist.kind != 'watch_later' %}
+            <button class="btn btn-secondary" type="button" id="deletePlaylistBtn" data-playlist="{{ playlist.id }}">
+              {{ icon('trash', 18) }} Удалить плейлист
+            </button>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if items %}
+    <div class="rows-list playlist-items">
+      {% for item in items %}
+        <article class="list-row">
+          <span class="playlist-index">{{ loop.index }}</span>
+          <a class="list-thumb" href="{{ url_for('main.watch', video_id=item.id) }}">
+            <img src="{{ url_for('media.thumb', filename=item.thumbnail) }}" alt="{{ item.title }}" loading="lazy">
+            <span class="duration-badge">{{ item.duration|duration }}</span>
+          </a>
+          <div class="list-info">
+            <a class="list-title" href="{{ url_for('main.watch', video_id=item.id) }}">{{ item.title }}</a>
+            <a class="list-channel" href="{{ url_for('main.channel', username=item.username) }}">{{ item.display_name }}</a>
+            <div class="list-meta">{{ item.views|views_text }} &middot; {{ item.created_at|timeago }}</div>
+          </div>
+          {% if is_owner %}
+            <button class="icon-btn list-remove" type="button"
+                    data-playlist-remove="{{ playlist.id }}" data-video="{{ item.id }}"
+                    title="Убрать из плейлиста" aria-label="Убрать из плейлиста">
+              {{ icon('trash', 18) }}
+            </button>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>В плейлисте пока нет видео</h2>
+      <p>Добавляйте видео кнопкой «Сохранить» на странице просмотра.</p>
+      <a class="btn btn-primary" href="{{ url_for('main.index') }}">Найти видео</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

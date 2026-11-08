@@ -1,0 +1,52 @@
+﻿{% extends "base.html" %}
+{% from "macros.html" import video_card, avatar %}
+{% from "icons.html" import icon %}
+
+{% block title %}Подписки — InderTube{% endblock %}
+
+{% block content %}
+<div class="feed-page">
+  <div class="feed-header">
+    <span class="feed-icon">{{ icon('subs', 30) }}</span>
+    <div>
+      <h1>Подписки</h1>
+      <p class="feed-sub">Свежие видео каналов, на которые вы подписаны</p>
+    </div>
+  </div>
+
+  {% if channels %}
+    <div class="channel-strip">
+      {% for channel in channels %}
+        <a class="channel-chip" href="{{ url_for('main.channel', username=channel.username) }}">
+          {{ avatar(channel, 56) }}
+          <span class="channel-chip-name">{{ channel.display_name }}</span>
+          <span class="channel-chip-subs">{{ channel.subs|human_num }} подписчиков</span>
+        </a>
+      {% endfor %}
+    </div>
+
+    {% if videos %}
+      <div class="video-grid">
+        {% for v in videos %}{{ video_card(v) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>Пока тихо</h2>
+        <p>Ваши каналы ещё не выложили новых видео.</p>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="empty-panel">
+      <h2>Вы ещё ни на кого не подписаны</h2>
+      <p>Подпишитесь на интересные каналы — их новые видео появятся здесь.</p>
+      <a class="btn btn-primary" href="{{ url_for('main.trending') }}">Смотреть тренды</a>
+    </div>
+    {% if suggestions %}
+      <h2 class="section-title">Каналы и видео, которые могут понравиться</h2>
+      <div class="video-grid">
+        {% for v in suggestions %}{{ video_card(v) }}{% endfor %}
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

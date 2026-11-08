@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+
+{% block title %}Редактирование — {{ video.title }}{% endblock %}
+
+{% block content %}
+<div class="upload-page">
+  <div class="upload-head">
+    <div class="breadcrumb">
+      <a href="{{ url_for('studio.index') }}">Творческая студия</a>
+      <span>/</span>
+      <span>Редактирование</span>
+    </div>
+    <h1>{{ video.title }}</h1>
+    <p class="feed-sub">
+      {% if video.is_short %}<span class="type-badge type-short">{{ icon('shorts', 12) }} Shorts</span>{% endif %}
+      <span class="visibility-pill visibility-{{ video.visibility }}">
+        {{ 'Открытое' if video.visibility == 'public' else ('По ссылке' if video.visibility == 'unlisted' else 'Личное') }}
+      </span>
+      &middot; {{ video.views|views_text }} &middot; {{ video.created_at|ru_date }}
+    </p>
+  </div>
+
+  <div class="edit-layout">
+    <form class="upload-form edit-form" id="editForm" method="post"
+          enctype="multipart/form-data" action="{{ url_for('studio.edit', video_id=video.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="upload-main">
+        <div class="edit-player {{ 'is-vertical' if video.is_short }}">
+          <video controls playsinline preload="metadata"
+                 poster="{{ url_for('media.thumb', filename=video.thumbnail) }}">
+            <source src="{{ url_for('media.video', filename=video.filename) }}" type="video/mp4">
+          </video>
+        </div>
+
+        <div class="field">
+          <label for="titleInput">Название <span class="req">*</span></label>
+          <input type="text" id="titleInput" name="title" maxlength="120" required value="{{ video.title }}">
+          <div class="field-counter">{{ video.title|length }}/120</div>
+        </div>
+
+        <div class="field">
+          <label for="descInput">Описание</label>
+          <textarea id="descInput" name="description" rows="6" maxlength="5000">{{ video.description }}</textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="categoryInput">Категория</label>
+            <select id="categoryInput" name="category">
+              {% for c in categories %}
+                <option value="{{ c }}" {{ 'selected' if video.category == c }}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="visibilityInput">Доступ</label>
+            <select id="visibilityInput" name="visibility">
+              <option value="public" {{ 'selected' if video.visibility == 'public' }}>Открытое — видно всем</option>
+              <option value="unlisted" {{ 'selected' if video.visibility == 'unlisted' }}>По ссылке — только по ссылке</option>
+              <option value="private" {{ 'selected' if video.visibility == 'private' }}>Личное — только вам</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Превью</label>
+          <div class="thumb-editor">
+            <div class="thumb-frame">
+              <img src="{{ url_for('media.thumb', filename=video.thumbnail) }}" alt="Превью">
+            </div>
+            <div class="thumb-controls">
+              <p>Загрузите новое изображение 16:9 (JPG, PNG или WebP).</p>
+              <label class="btn btn-secondary">
+                {{ icon('image', 18) }} Заменить превью
+                <input type="file" name="thumbnail" accept="image/jpeg,image/png,image/webp" hidden>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <aside class="upload-side">
+      <div class="upload-submit">
+        <button class="btn btn-primary btn-block" type="submit" form="editForm">Сохранить изменения</button>
+        <a class="btn btn-ghost btn-block" href="{{ url_for('main.watch', video_id=video.id) }}">Смотреть видео</a>
+      </div>
+      <div class="danger-zone">
+        <h3>Удаление</h3>
+        <p>Видео и его превью будут удалены навсегда.</p>
+        <form method="post" action="{{ url_for('studio.delete', video_id=video.id) }}"
+              data-confirm="Удалить видео «{{ video.title }}»? Это действие необратимо.">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-danger btn-block" type="submit">{{ icon('trash', 18) }} Удалить видео</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

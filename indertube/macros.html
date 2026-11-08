@@ -1,0 +1,69 @@
+{% from "icons.html" import icon %}
+
+{% macro avatar(user, size=36, cls='') -%}
+  {% if user.avatar_file %}
+    <img class="avatar {{ cls }}" src="{{ url_for('media.avatar', filename=user.avatar_file) }}"
+         width="{{ size }}" height="{{ size }}" alt="{{ user.display_name }}" loading="lazy">
+  {% else %}
+    <span class="avatar {{ cls }}"
+          style="width:{{ size }}px;height:{{ size }}px;background:{{ user.avatar_color }};font-size:{{ (size * 0.38)|round|int }}px">{{ user.display_name|initials }}</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro video_card(v, owner_view=false) -%}
+<article class="video-card">
+  <a class="thumb" href="{{ url_for('main.watch', video_id=v.id) }}" aria-label="{{ v.title }}">
+    <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+    <span class="duration-badge">{{ v.duration|duration }}</span>
+    {% if v.visibility != 'public' %}
+      <span class="visibility-badge">{{ 'По ссылке' if v.visibility == 'unlisted' else 'Личное' }}</span>
+    {% endif %}
+  </a>
+  <div class="card-body">
+    <a class="card-avatar" href="{{ url_for('main.channel', username=v.username) }}" tabindex="-1">
+      {{ avatar(v, 36) }}
+    </a>
+    <div class="card-text">
+      <a class="card-title" href="{{ url_for('main.watch', video_id=v.id) }}">{{ v.title }}</a>
+      <a class="card-channel" href="{{ url_for('main.channel', username=v.username) }}">{{ v.display_name }}</a>
+      <div class="card-meta">{{ v.views|views_text }} &middot; {{ v.created_at|timeago }}</div>
+    </div>
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro short_card(v) -%}
+<article class="short-card">
+  <a href="{{ url_for('main.shorts', video_id=v.id) }}" aria-label="{{ v.title }}">
+    <div class="short-card-thumb">
+      <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+      <span class="short-card-label">{{ icon('shorts', 13) }} Shorts</span>
+      <span class="duration-badge">{{ v.duration|duration }}</span>
+    </div>
+    <div class="short-card-title">{{ v.title }}</div>
+    <div class="short-card-meta">{{ v.views|views_text }} &middot; {{ v.created_at|timeago }}</div>
+  </a>
+</article>
+{%- endmacro %}
+
+{% macro video_row(v, show_views=true) -%}
+<article class="video-row">
+  <a class="row-thumb" href="{{ url_for('main.watch', video_id=v.id) }}" aria-label="{{ v.title }}">
+    <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+    <span class="duration-badge">{{ v.duration|duration }}</span>
+  </a>
+  <div class="row-info">
+    <a class="row-title" href="{{ url_for('main.watch', video_id=v.id) }}">{{ v.title }}</a>
+    <a class="row-channel" href="{{ url_for('main.channel', username=v.username) }}">{{ v.display_name }}</a>
+    {% if show_views %}
+      <div class="row-meta">{{ v.views|views_text }} &middot; {{ v.created_at|timeago }}</div>
+    {% endif %}
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro channel_avatar_link(user, size=36) -%}
+<a class="card-avatar" href="{{ url_for('main.channel', username=user.username) }}" tabindex="-1">
+  {{ avatar(user, size) }}
+</a>
+{%- endmacro %}

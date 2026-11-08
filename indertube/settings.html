@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "macros.html" import avatar %}
+
+{% block title %}Настройки канала — InderTube{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+  <div class="feed-header">
+    <span class="feed-icon">{{ icon('settings', 30) }}</span>
+    <div>
+      <h1>Настройки канала</h1>
+      <p class="feed-sub">Публичная информация о канале и безопасность аккаунта</p>
+    </div>
+  </div>
+
+  <div class="settings-grid">
+    <form class="settings-card" method="post" action="{{ url_for('auth.settings') }}" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="profile">
+
+      <h2>Профиль канала</h2>
+
+      <div class="avatar-editor">
+        <div class="avatar-preview">
+          {% if current_user.avatar_file %}
+            <img class="avatar" src="{{ url_for('media.avatar', filename=current_user.avatar_file) }}"
+                 width="96" height="96" alt="{{ current_user.display_name }}">
+          {% else %}
+            <span class="avatar" style="width:96px;height:96px;background:{{ current_user.avatar_color }};font-size:36px">{{ current_user.display_name|initials }}</span>
+          {% endif %}
+        </div>
+        <div class="avatar-editor-info">
+          <label class="btn btn-secondary">
+            {{ icon('image', 18) }} Загрузить фото
+            <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" hidden>
+          </label>
+          <p>Квадратное изображение, до 5 МБ. Если не загружать — покажем инициалы.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="displayName">Название канала</label>
+        <input type="text" id="displayName" name="display_name" maxlength="60" required
+               value="{{ current_user.display_name }}">
+      </div>
+
+      <div class="field">
+        <label for="username">Ссылка на канал</label>
+        <div class="input-prefix">
+          <span>indertube.ru/channel/</span>
+          <input type="text" id="username" name="username" maxlength="30" required
+                 value="{{ current_user.username }}" pattern="[A-Za-z0-9_.]{3,30}">
+        </div>
+        <p class="field-hint">3–30 символов: латиница, цифры, точка или подчёркивание.</p>
+      </div>
+
+      <div class="field">
+        <label for="bio">Описание канала</label>
+        <textarea id="bio" name="bio" rows="4" maxlength="1000"
+                  placeholder="О чём ваш канал?">{{ current_user.bio }}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Цвет аватара</label>
+        <div class="color-swatches">
+          {% for color in AVATAR_COLORS %}
+            <label class="color-swatch {{ 'is-selected' if color == current_user.avatar_color }}"
+                   style="--swatch: {{ color }}">
+              <input type="radio" name="avatar_color" value="{{ color }}"
+                     {{ 'checked' if color == current_user.avatar_color }}>
+              <span></span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="bannerColor">Цвет баннера канала</label>
+        <div class="banner-color-row">
+          <input type="color" id="bannerColor" name="banner_color" value="{{ current_user.banner_color }}">
+          <span class="field-hint">Используется как фон шапки канала.</span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить изменения</button>
+        <a class="btn btn-ghost" href="{{ url_for('main.channel', username=current_user.username) }}">Открыть канал</a>
+      </div>
+    </form>
+
+    <div class="settings-side">
+      <form class="settings-card" method="post" action="{{ url_for('auth.settings') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="password">
+
+        <h2>Безопасность</h2>
+        <div class="field">
+          <label for="currentPassword">Текущий пароль</label>
+          <input type="password" id="currentPassword" name="current_password" required autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label for="newPassword">Новый пароль</label>
+          <input type="password" id="newPassword" name="new_password" required minlength="8" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="newPassword2">Повторите пароль</label>
+          <input type="password" id="newPassword2" name="new_password2" required minlength="8" autocomplete="new-password">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" type="submit">Изменить пароль</button>
+        </div>
+      </form>
+
+      <div class="settings-card settings-stats">
+        <h2>Канал в цифрах</h2>
+        <div class="about-stats">
+          <div><strong>{{ stats.videos }}</strong><span>видео</span></div>
+          <div><strong>{{ stats.views|human_num }}</strong><span>просмотров</span></div>
+        </div>
+        <p class="field-hint">Аккаунт создан {{ current_user.created_at|ru_date }}.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

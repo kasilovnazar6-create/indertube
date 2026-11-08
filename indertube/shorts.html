@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% from "icons.html" import icon %}
+{% from "macros.html" import avatar %}
+
+{% block title %}Shorts — InderTube{% endblock %}
+{% block body_class %}page-shorts{% endblock %}
+
+{% block content %}
+{% if shorts %}
+<div class="shorts-page">
+  <div class="shorts-feed" id="shortsFeed" data-active="{{ active_id or '' }}">
+    {% for s in shorts %}
+      <section class="short" data-short-id="{{ s.id }}" data-channel="{{ s.user_id }}">
+        <div class="short-stage">
+          <video class="short-video" preload="metadata" playsinline loop muted
+                 poster="{{ url_for('media.thumb', filename=s.thumbnail) }}"
+                 src="{{ url_for('media.video', filename=s.filename) }}"></video>
+
+          <button class="short-play-toggle" type="button" aria-label="Воспроизвести/пауза">
+            {{ icon('play', 54) }}
+          </button>
+          <button class="short-sound" type="button" data-short-sound aria-label="Включить звук" title="Включить звук">
+            <span class="sound-on">{{ icon('volume', 20) }}</span>
+            <span class="sound-off">{{ icon('volume-off', 20) }}</span>
+          </button>
+
+          <div class="short-gradient"></div>
+
+          <div class="short-overlay">
+            <div class="short-channel-row">
+              <a href="{{ url_for('main.channel', username=s.username) }}" class="short-avatar-link">
+                {{ avatar(s, 38) }}
+              </a>
+              <a href="{{ url_for('main.channel', username=s.username) }}" class="short-channel-name">{{ s.display_name }}</a>
+              {% if current_user and current_user.id != s.user_id %}
+                <button class="short-subscribe {{ 'is-subscribed' if subs_by_channel[s.user_id].subscribed }}"
+                        type="button" data-subscribe="{{ s.user_id }}">
+                  {{ 'Вы подписаны' if subs_by_channel[s.user_id].subscribed else 'Подписаться' }}
+                </button>
+              {% endif %}
+            </div>
+            <h2 class="short-title">{{ s.title }}</h2>
+            {% if s.description %}
+              <p class="short-desc">{{ s.description[:140] }}{% if s.description|length > 140 %}…{% endif %}</p>
+            {% endif %}
+          </div>
+
+          <div class="short-actions">
+            <button class="short-action {{ 'is-active' if s.id in liked_ids }}" type="button"
+                    data-short-like data-video="{{ s.id }}" aria-label="Нравится">
+              {{ icon('like', 26) }}
+              <span data-short-like-count>{{ s.like_count|human_num if s.like_count else 'Нравится' }}</span>
+            </button>
+            <button class="short-action" type="button" data-short-comments data-video="{{ s.id }}"
+                    data-count="{{ s.comment_count }}" aria-label="Комментарии">
+              {{ icon('comment', 26) }}
+              <span data-short-comment-count>{{ s.comment_count|human_num if s.comment_count else 'Комментарии' }}</span>
+            </button>
+            <button class="short-action" type="button" data-short-share
+                    data-url="{{ url_for('main.shorts', video_id=s.id, _external=True) }}" aria-label="Поделиться">
+              {{ icon('share', 26) }}
+              <span>Поделиться</span>
+            </button>
+            <a class="short-action short-channel-action" href="{{ url_for('main.channel', username=s.username) }}"
+               aria-label="{{ s.display_name }}">
+              {{ avatar(s, 34) }}
+            </a>
+          </div>
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+
+  <aside class="shorts-comments" id="shortsComments" hidden>
+    <div class="shorts-comments-head">
+      <h3>Комментарии <span class="shorts-comments-count" id="shortsCommentsCount"></span></h3>
+      <button class="icon-btn" type="button" id="closeShortsComments" aria-label="Закрыть">{{ icon('close', 22) }}</button>
+    </div>
+    <div class="shorts-comments-body" id="shortsCommentsList"></div>
+    {% if current_user %}
+      <form class="shorts-comment-form" id="shortsCommentForm">
+        {{ avatar(current_user, 32) }}
+        <textarea id="shortsCommentInput" rows="1" maxlength="2000" placeholder="Добавьте комментарий…"></textarea>
+        <button class="btn btn-primary" type="submit" id="shortsCommentSubmit" disabled>Отправить</button>
+      </form>
+    {% else %}
+      <div class="shorts-comments-login">
+        <a href="{{ url_for('auth.login', next=request.path) }}">Войдите</a>, чтобы оставлять комментарии.
+      </div>
+    {% endif %}
+  </aside>
+</div>
+{% else %}
+  <div class="shorts-empty">
+    <div class="shorts-empty-mark">{{ icon('shorts', 46) }}</div>
+    <h1>Shorts</h1>
+    <p>Короткие вертикальные видео. Загрузите своё — до 60 секунд.</p>
+    {% if current_user %}
+      <a class="btn btn-primary" href="{{ url_for('studio.upload', format='short') }}">Загрузить Shorts</a>
+    {% else %}
+      <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Создать канал</a>
+      <a class="btn btn-secondary" href="{{ url_for('auth.login') }}">Войти</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/shorts.js') }}"></script>
+{% endblock %}

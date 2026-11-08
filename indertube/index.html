@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% from "macros.html" import video_card, short_card %}
+
+{% block title %}InderTube — видео и Shorts{% endblock %}
+
+{% block content %}
+<div class="chips-bar">
+  <div class="chips">
+    {% for c in CATEGORIES %}
+      <a class="chip {{ 'is-active' if c == active_category }}"
+         href="{{ url_for('main.index') if c == 'Все' else url_for('main.index', category=c) }}">{{ c }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if not videos and not shorts %}
+  <section class="welcome">
+    <div class="welcome-mark">
+      <svg viewBox="0 0 30 21" width="72" height="50" aria-hidden="true">
+        <rect width="30" height="21" rx="5.5" fill="#ff0033"/>
+        <path d="M12 6.1v8.8L20.4 10.5z" fill="#fff"/>
+      </svg>
+    </div>
+    <h1>Добро пожаловать в InderTube</h1>
+    <p>Смотрите видео и Shorts, создайте свой канал и загружайте собственный контент.</p>
+    <div class="welcome-actions">
+      {% if current_user %}
+        <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">Загрузить видео</a>
+        <a class="btn btn-secondary" href="{{ url_for('studio.upload', format='short') }}">Загрузить Shorts</a>
+      {% else %}
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Создать канал</a>
+        <a class="btn btn-secondary" href="{{ url_for('auth.login') }}">Войти</a>
+      {% endif %}
+    </div>
+    <div class="welcome-features">
+      <div><strong>Видео</strong><span>MP4, WebM или MOV — до 2 ГБ</span></div>
+      <div><strong>Shorts</strong><span>Вертикальные видео до 60 секунд</span></div>
+      <div><strong>Сообщество</strong><span>Лайки, комментарии, подписки</span></div>
+    </div>
+  </section>
+{% else %}
+  {% if shorts and active_category == 'Все' %}
+    <section class="shorts-shelf">
+      <div class="shelf-head">
+        <h2>{{ 'Shorts' }}</h2>
+        <a class="shelf-link" href="{{ url_for('main.shorts') }}">Смотреть все</a>
+      </div>
+      <div class="shorts-row">
+        {% for s in shorts %}{{ short_card(s) }}{% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if videos %}
+    <div class="video-grid">
+      {% for v in videos %}{{ video_card(v) }}{% endfor %}
+    </div>
+  {% elif active_category != 'Все' %}
+    <div class="empty-state">
+      <h2>В категории «{{ active_category }}» пока пусто</h2>
+      <p>Попробуйте другую категорию или загрузите своё видео.</p>
+      <a class="btn btn-secondary" href="{{ url_for('main.index') }}">Показать все видео</a>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>Обычных видео пока нет</h2>
+      <p>Но уже есть Shorts — или загрузите первое полноценное видео.</p>
+      {% if current_user %}
+        <a class="btn btn-primary" href="{{ url_for('studio.upload') }}">Загрузить видео</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

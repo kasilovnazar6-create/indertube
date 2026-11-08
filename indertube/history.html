@@ -1,0 +1,49 @@
+﻿{% extends "base.html" %}
+{% from "macros.html" import avatar %}
+{% from "icons.html" import icon %}
+
+{% block title %}История просмотров — InderTube{% endblock %}
+
+{% block content %}
+<div class="feed-page">
+  <div class="feed-header feed-header-row">
+    <div class="feed-title">
+      <span class="feed-icon">{{ icon('history', 30) }}</span>
+      <div>
+        <h1>История просмотров</h1>
+        <p class="feed-sub">Видео, которые вы смотрели на этом аккаунте</p>
+      </div>
+    </div>
+    {% if videos %}
+      <button class="btn btn-secondary" type="button" id="clearHistory">{{ icon('trash', 18) }} Очистить историю</button>
+    {% endif %}
+  </div>
+
+  {% if videos %}
+    <div class="rows-list" id="historyList">
+      {% for v in videos %}
+        <article class="list-row" data-history-row="{{ v.id }}">
+          <a class="list-thumb" href="{{ url_for('main.watch', video_id=v.id) }}">
+            <img src="{{ url_for('media.thumb', filename=v.thumbnail) }}" alt="{{ v.title }}" loading="lazy">
+            <span class="duration-badge">{{ v.duration|duration }}</span>
+          </a>
+          <div class="list-info">
+            <a class="list-title" href="{{ url_for('main.watch', video_id=v.id) }}">{{ v.title }}</a>
+            <a class="list-channel" href="{{ url_for('main.channel', username=v.username) }}">{{ avatar(v, 22) }} {{ v.display_name }}</a>
+            <div class="list-meta">{{ v.views|views_text }} &middot; просмотрено {{ v.watched_at|timeago }}</div>
+          </div>
+          <button class="icon-btn list-remove" type="button" data-remove-history="{{ v.id }}" title="Удалить из истории" aria-label="Удалить из истории">
+            {{ icon('close', 20) }}
+          </button>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>История пуста</h2>
+      <p>Здесь появятся видео, которые вы посмотрите.</p>
+      <a class="btn btn-primary" href="{{ url_for('main.index') }}">Смотреть видео</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

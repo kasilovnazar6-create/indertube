@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% from "macros.html" import video_row, avatar %}
+{% from "icons.html" import icon %}
+
+{% block title %}{{ video.title }} — InderTube{% endblock %}
+{% block description %}{{ video.description[:150] if video.description else video.title }}{% endblock %}
+{% block body_class %}page-watch{% endblock %}
+
+{% block content %}
+<div class="watch-layout">
+  <div class="watch-primary">
+    <div class="player-container">
+      <video id="player" class="player" controls playsinline preload="metadata"
+             poster="{{ url_for('media.thumb', filename=video.thumbnail) }}"
+             data-video-id="{{ video.id }}">
+        <source src="{{ url_for('media.video', filename=video.filename) }}" type="video/mp4">
+        Ваш браузер не поддерживает воспроизведение видео.
+      </video>
+    </div>
+
+    <h1 class="watch-title">{{ video.title }}</h1>
+
+    <div class="watch-toolbar">
+      <div class="watch-channel">
+        <a href="{{ url_for('main.channel', username=video.username) }}" class="watch-avatar">
+          {{ avatar(video, 40) }}
+        </a>
+        <div class="watch-channel-info">
+          <a class="watch-channel-name" href="{{ url_for('main.channel', username=video.username) }}">{{ video.display_name }}</a>
+          <span class="watch-channel-subs">{{ channel_subs|subs_text }}</span>
+        </div>
+        {% if is_owner %}
+          <a class="btn btn-secondary" href="{{ url_for('studio.edit', video_id=video.id) }}">
+            {{ icon('edit', 18) }} Редактировать
+          </a>
+        {% else %}
+          <button class="btn btn-subscribe {{ 'is-subscribed' if subscribed }}"
+                  type="button" data-subscribe="{{ video.user_id }}">
+            <span class="subscribe-label">{{ 'Вы подписаны' if subscribed else 'Подписаться' }}</span>
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="watch-actions">
+        <div class="pill-group">
+          <button class="pill like-btn {{ 'is-active' if user_like == 1 }}" type="button"
+                  data-like="1" data-video="{{ video.id }}" aria-label="Нравится">
+            {{ icon('like', 20) }}
+            <span class="like-count">{{ video.like_count|human_num if video.like_count else 'Нравится' }}</span>
+          </button>
+          <span class="pill-divider"></span>
+          <button class="pill dislike-btn {{ 'is-active' if user_like == -1 }}" type="button"
+                  data-like="-1" data-video="{{ video.id }}" aria-label="Не нравится">
+            {{ icon('dislike', 20) }}
+          </button>
+        </div>
+        <button class="pill" type="button" id="shareBtn"
+                data-url="{{ url_for('main.watch', video_id=video.id, _external=True) }}">
+          {{ icon('share', 20) }} Поделиться
+        </button>
+        <button class="pill save-btn" type="button" data-video="{{ video.id }}">
+          {{ icon('save', 20) }} Сохранить
+        </button>
+      </div>
+    </div>
+
+    <div class="description-card {{ 'is-collapsed' if video.description and (video.description|length > 220 or video.description.count('\n') > 2) else 'is-short' }}"
+         id="descriptionCard">
+      <div class="description-stats">
+        <span id="viewCount">{{ video.views|views_text }}</span>
+        <span class="dot">·</span>
+        <span>{{ video.created_at|ru_date }}</span>
+        {% if video.category and video.category != 'Другое' %}
+          <span class="chip chip-mini">{{ video.category }}</span>
+        {% endif %}
+      </div>
+      <div class="description-text" id="descriptionText">{{ video.description or 'Описание не добавлено.' }}</div>
+      <button class="description-toggle" type="button" id="descriptionToggle">Ещё</button>
+    </div>
+
+    <section class="comments-section" data-video="{{ video.id }}">
+      <div class="comments-header">
+        <h2 id="commentsHeading">{{ video.comment_count|comments_text }}</h2>
+      </div>
+
+      {% if current_user %}
+        <form class="comment-form" id="commentForm" data-video="{{ video.id }}">
+          {{ avatar(current_user, 40) }}
+          <div class="comment-editor">
+            <div class="reply-hint" id="replyHint" hidden>
+              Ответ на <span id="replyName"></span>
+              <button type="button" id="cancelReply" aria-label="Отменить ответ">{{ icon('close', 14) }}</button>
+            </div>
+            <textarea id="commentInput" name="text" rows="1" maxlength="2000"
+                      placeholder="Введите комментарий…"></textarea>
+            <div class="comment-form-actions">
+              <button class="btn btn-ghost" type="button" id="cancelComment">Отмена</button>
+              <button class="btn btn-primary" type="submit" id="submitComment" disabled>Отправить</button>
+            </div>
+          </div>
+        </form>
+      {% else %}
+        <div class="comment-login">
+          <p>Войдите, чтобы оставлять комментарии и ставить лайки.</p>
+          <a class="btn btn-primary" href="{{ url_for('auth.login', next=request.path) }}">Войти</a>
+        </div>
+      {% endif %}
+
+      <div class="comments-list" id="commentsList">
+        {% for c in comments %}
+          {% set c_replies = replies_map.get(c.id, []) %}
+          {% include "partials/comment.html" %}
+        {% endfor %}
+      </div>
+      <div class="comments-empty" id="commentsEmpty" {{ 'hidden' if comments }}>Комментариев пока нет. Будьте первым!</div>
+    </section>
+  </div>
+
+  <aside class="watch-sidebar">
+    <h2 class="watch-side-title">Похожие видео</h2>
+    <div class="watch-related">
+      {% for r in related %}{{ video_row(r) }}{% endfor %}
+    </div>
+  </aside>
+</div>
+{% endblock %}
